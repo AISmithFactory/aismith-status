@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Smith — status</title>
+<style>
+  /* AI Smith skin values (client profile, forge) — static by design: this page
+     renders with zero dependencies when everything else is down. */
+  :root { --bg:#F8F5EF; --card:#FFFFFF; --text:#1E1D1B; --soft:#6E6760;
+    --line:rgba(30,29,27,.12); --ember:#C0632E; --deep:#9E4E1E;
+    --ok:#3E7C4F; --warn:#B08A2E; --bad:#A03030; }
+  body { margin:0; background:var(--bg); color:var(--text);
+    font-family:Georgia,'Times New Roman',serif; }
+  .wrap { max-width:640px; margin:0 auto; padding:36px 20px 60px; }
+  h1,h2 { font-family:system-ui,-apple-system,sans-serif; }
+  .banner { border-radius:12px; padding:18px 22px; color:#F8F5EF;
+    font-family:system-ui,sans-serif; font-size:18px; font-weight:700; }
+  .banner.ok { background:var(--ok); } .banner.warn { background:var(--warn); }
+  .banner.bad { background:var(--bad); } .banner.unknown { background:var(--soft); }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px;
+    padding:16px 20px; margin-top:14px; }
+  .sig { display:flex; justify-content:space-between; padding:8px 0;
+    border-bottom:1px solid var(--line); font-size:15px; }
+  .sig:last-child { border-bottom:none; }
+  .muted { color:var(--soft); font-size:13px; }
+  .inc-title { font-family:system-ui,sans-serif; font-weight:700; }
+  .sev { display:inline-block; border-radius:6px; padding:1px 8px; font-size:12px;
+    font-family:system-ui,sans-serif; color:#F8F5EF; margin-left:8px; }
+  .sev.minor { background:var(--warn); } .sev.major { background:var(--ember); }
+  .sev.outage { background:var(--bad); } .sev.resolved { background:var(--soft); }
+  .upd { margin:6px 0 0 12px; font-size:14px; }
+  a { color:var(--deep); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>AI Smith — fleet status</h1>
+  <div id="banner" class="banner unknown">Loading…</div>
+  <div class="card" id="signals"></div>
+  <h2>Incidents</h2>
+  <div class="card" id="incidents"><span class="muted">Loading…</span></div>
+  <p class="muted">Off-stack by rule: this page runs on GitHub Pages, independent of the
+  hub's infrastructure. Signals refresh every 15 minutes. <span id="stamp"></span></p>
+</div>
+<script>
+(async function () {
+  const bust = "?t=" + Math.floor(Date.now() / 60000);
+  let s = null, incidents = [];
+  try { s = await (await fetch("status.json" + bust)).json(); } catch {}
+  try { incidents = await (await fetch("incidents.json" + bust)).json(); } catch {}
+
+  const openInc = incidents.filter(i => i.status === "open");
+  const banner = document.getElementById("banner");
+  const staleMin = s && s.generated_at ? (Date.now() - new Date(s.generated_at)) / 60000 : Infinity;
+  let cls = "unknown", label = "Status unknown";
+  if (openInc.some(i => i.severity === "outage")) { cls = "bad"; label = "Outage in progress"; }
+  else if (openInc.length) { cls = "warn"; label = "Incident open — degraded"; }
+  else if (s && s.state === "ok" && staleMin < 45) { cls = "ok"; label = "All systems operational"; }
+  else if (s && s.state === "degraded") { cls = "warn"; label = "Degraded"; }
+  else if (staleMin >= 45) { cls = "warn"; label = "Signals stale — checking"; }
+  banner.className = "banner " + cls; banner.textContent = label;
+
+  const sig = document.getElementById("signals");
+  const fmtAge = m => m == null ? "no signal yet" : m < 90 ? m + " min ago" : Math.round(m / 60) + " h ago";
+  const rows = s ? [
+    ["Hub (hub.aismith.io)", s.hub_up == null ? "unknown" : s.hub_up ? "up" : "DOWN"],
+    ["Fleet signal (monitor/dispatcher)", fmtAge(s.fleet_signal_age_min)],
+    ["Open monitor alerts", s.open_monitor_alerts == null ? "unknown" : s.open_monitor_alerts],
+    ["Backup signal", s.backup_signal_age_min == null ? "not wired yet" : fmtAge(s.backup_signal_age_min)],
+  ] : [["Signals", "unavailable"]];
+  sig.innerHTML = rows.map(r => `<div class="sig"><span>${r[0]}</span><span>${r[1]}</span></div>`).join("");
+  document.getElementById("stamp").textContent = s && s.generated_at ? "Last signal write: " + new Date(s.generated_at).toLocaleString() : "";
+
+  const el = document.getElementById("incidents");
+  if (!incidents.length) { el.innerHTML = '<span class="muted">No incidents recorded.</span>'; return; }
+  el.innerHTML = incidents.slice(0, 20).map(i => `
+    <div style="padding:10px 0;border-bottom:1px solid var(--line);">
+      <span class="inc-title">${esc(i.title)}</span>
+      <span class="sev ${i.status === "resolved" ? "resolved" : esc(i.severity)}">${i.status === "resolved" ? "resolved" : esc(i.severity)}</span>
+      <div class="muted">opened ${new Date(i.opened_at).toLocaleString()}</div>
+      ${(i.updates || []).slice(-3).map(u => `<div class="upd">— ${esc(u.message)} <span class="muted">(${new Date(u.at).toLocaleString()})</span></div>`).join("")}
+    </div>`).join("");
+  function esc(v) { return String(v).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+})();
+</script>
+</body>
+</html>
