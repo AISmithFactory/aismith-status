@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-09-12T13:42:34Z",
+  "generated_at": "2026-09-12T16:32:14Z",
   "state": "degraded",
   "hub_up": true,
-  "fleet_signal_age_min": 1413,
+  "fleet_signal_age_min": 1583,
   "open_monitor_alerts": 198,
   "backup_signal_age_min": null
 }
