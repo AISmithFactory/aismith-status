@@ -1,6 +1,7 @@
-# Writes status.json every 15 min: hub reachability probe + the hub's public
-# status-feed aggregates. Commit only on change. If the feed is unreachable the
-# page shows signals-stale -- that IS the signal; this job must never fail hard.
+# Writes status.json every 15 min: a reachability probe of the Forge
+# (forge.aismith.io). The retired hub's status-feed is no longer read, so its
+# three signal fields are written as null. Commit only on change; this job must
+# never fail hard.
 name: update-status
 on:
   workflow_dispatch:
@@ -15,21 +16,15 @@ jobs:
       - uses: actions/checkout@v4
       - name: Probe + compose
         run: |
-          HUB_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 15 https://hub.aismith.io/ || echo 000)
+          HUB_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 15 https://forge.aismith.io/ || echo 000)
           HUB_UP=$([ "$HUB_CODE" = "200" ] && echo true || echo false)
-          FEED=$(curl -sf --max-time 15 https://dinsunnuacwjrmiebkbe.supabase.co/functions/v1/status-feed || echo '{}')
-          FLEET_AGE=$(echo "$FEED" | jq -r '.fleet_signal_age_min // "null"')
-          ALERTS=$(echo "$FEED" | jq -r '.open_monitor_alerts // "null"')
-          BACKUP_AGE=$(echo "$FEED" | jq -r '.backup_signal_age_min // "null"')
           STATE="ok"
           [ "$HUB_UP" = "false" ] && STATE="degraded"
-          [ "$ALERTS" != "null" ] && [ "$ALERTS" -gt 0 ] 2>/dev/null && STATE="degraded"
-          jq -n --argjson hub_up "$HUB_UP" --argjson fleet "$FLEET_AGE" \
-                --argjson alerts "$ALERTS" --argjson backup "$BACKUP_AGE" \
+          jq -n --argjson hub_up "$HUB_UP" \
                 --arg state "$STATE" --arg now "$(date -u +%FT%TZ)" \
             '{generated_at:$now, state:$state, hub_up:$hub_up,
-              fleet_signal_age_min:$fleet, open_monitor_alerts:$alerts,
-              backup_signal_age_min:$backup}' > status.json
+              fleet_signal_age_min:null, open_monitor_alerts:null,
+              backup_signal_age_min:null}' > status.json
       - name: Commit if changed (ignoring the timestamp)
         run: |
           git config user.name "aismith-status"
