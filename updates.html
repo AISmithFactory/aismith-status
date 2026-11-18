@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Smith updates</title>
+<style>
+  /* Same skin values as index.html, static by design: this page renders with
+     zero dependencies when everything else is down. */
+  :root { --bg:#F8F5EF; --card:#FFFFFF; --text:#1E1D1B; --soft:#6E6760;
+    --line:rgba(30,29,27,.12); --deep:#9E4E1E; }
+  body { margin:0; background:var(--bg); color:var(--text);
+    font-family:Georgia,'Times New Roman',serif; }
+  .wrap { max-width:640px; margin:0 auto; padding:36px 20px 60px; }
+  h1 { font-family:system-ui,-apple-system,sans-serif; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px;
+    padding:16px 20px; margin-top:14px; }
+  .entry { padding:10px 0; border-bottom:1px solid var(--line); }
+  .entry:last-child { border-bottom:none; }
+  .entry-title { font-family:system-ui,sans-serif; font-weight:700; overflow-wrap:anywhere; }
+  .muted { color:var(--soft); font-size:13px; }
+  a { color:var(--deep); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>AI Smith updates</h1>
+  <p class="muted">Changes merged into the AI Smith hub seed and packs, newest first.
+  <a href="./">Fleet status</a></p>
+  <div class="card" id="updates"><span class="muted">Loading…</span></div>
+</div>
+<script>
+(async function () {
+  // Every value from updates.json is written with textContent, never as
+  // markup: a title is shown exactly as written, whatever characters it holds.
+  const bust = "?t=" + Math.floor(Date.now() / 60000);
+  let list = null;
+  try { list = await (await fetch("updates.json" + bust)).json(); } catch {}
+  const el = document.getElementById("updates");
+  el.replaceChildren();
+  const ok = u => u && typeof u.title === "string" && typeof u.repo === "string" &&
+    Number.isInteger(u.number) && typeof u.merged_at === "string" &&
+    /^\d{4}-\d{2}-\d{2}T/.test(u.merged_at);
+  const rows = Array.isArray(list) ? list.filter(ok) : [];
+  if (!rows.length) {
+    const note = document.createElement("span");
+    note.className = "muted";
+    note.textContent = Array.isArray(list) ? "No updates yet." : "Updates unavailable.";
+    el.append(note);
+    return;
+  }
+  for (const u of rows) {
+    const row = document.createElement("div");
+    row.className = "entry";
+    const title = document.createElement("div");
+    title.className = "entry-title";
+    title.textContent = u.title;
+    const meta = document.createElement("div");
+    meta.className = "muted";
+    meta.textContent = u.merged_at.slice(0, 10) + " · " + u.repo + " #" + u.number;
+    row.append(title, meta);
+    el.append(row);
+  }
+})();
+</script>
+</body>
+</html>

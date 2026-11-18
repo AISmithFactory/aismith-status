@@ -1,0 +1,135 @@
+[
+  {
+    "url": "https://api.github.com/repos/AISmithFactory/aismith-packs/pulls/120",
+    "html_url": "https://github.com/AISmithFactory/aismith-packs/pull/120",
+    "number": 120,
+    "state": "closed",
+    "title": "Pack answers for the bakery trade",
+    "user": {
+      "login": "sentinel-author",
+      "id": 1
+    },
+    "body": "SENTINEL-BODY: private description that must never be published.",
+    "labels": [
+      {
+        "id": 1000,
+        "name": "public-changelog",
+        "color": "ededed"
+      }
+    ],
+    "created_at": "2026-11-01T08:00:00Z",
+    "updated_at": "2026-11-25T10:00:02Z",
+    "closed_at": "2026-11-25T10:00:00Z",
+    "merged_at": "2026-11-25T10:00:00Z",
+    "merge_commit_sha": "5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e",
+    "head": {
+      "ref": "sentinel-branch",
+      "sha": "abababababababababababababababababababab"
+    },
+    "base": {
+      "ref": "main"
+    },
+    "draft": false
+  },
+  {
+    "url": "https://api.github.com/repos/AISmithFactory/aismith-packs/pulls/119",
+    "html_url": "https://github.com/AISmithFactory/aismith-packs/pull/119",
+    "number": 119,
+    "state": "closed",
+    "title": "Opt-in label in another case is not the opt-in label",
+    "user": {
+      "login": "sentinel-author",
+      "id": 1
+    },
+    "body": "SENTINEL-BODY: private description that must never be published.",
+    "labels": [
+      {
+        "id": 1000,
+        "name": "Public-Changelog",
+        "color": "ededed"
+      }
+    ],
+    "created_at": "2026-11-01T08:00:00Z",
+    "updated_at": "2026-11-22T15:30:01Z",
+    "closed_at": "2026-11-22T15:30:00Z",
+    "merged_at": "2026-11-22T15:30:00Z",
+    "merge_commit_sha": "5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e",
+    "head": {
+      "ref": "sentinel-branch",
+      "sha": "abababababababababababababababababababab"
+    },
+    "base": {
+      "ref": "main"
+    },
+    "draft": false
+  },
+  {
+    "url": "https://api.github.com/repos/AISmithFactory/aismith-packs/pulls/118",
+    "html_url": "https://github.com/AISmithFactory/aismith-packs/pull/118",
+    "number": 118,
+    "state": "closed",
+    "title": "Opt-out label in another case still wins",
+    "user": {
+      "login": "sentinel-author",
+      "id": 1
+    },
+    "body": "SENTINEL-BODY: private description that must never be published.",
+    "labels": [
+      {
+        "id": 1000,
+        "name": "public-changelog",
+        "color": "ededed"
+      },
+      {
+        "id": 1001,
+        "name": "No-Changelog",
+        "color": "ededed"
+      }
+    ],
+    "created_at": "2026-11-01T08:00:00Z",
+    "updated_at": "2026-11-22T15:00:01Z",
+    "closed_at": "2026-11-22T15:00:00Z",
+    "merged_at": "2026-11-22T15:00:00Z",
+    "merge_commit_sha": "5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e",
+    "head": {
+      "ref": "sentinel-branch",
+      "sha": "abababababababababababababababababababab"
+    },
+    "base": {
+      "ref": "main"
+    },
+    "draft": false
+  },
+  {
+    "url": "https://api.github.com/repos/AISmithFactory/aismith-packs/pulls/117",
+    "html_url": "https://github.com/AISmithFactory/aismith-packs/pull/117",
+    "number": 117,
+    "state": "closed",
+    "title": "Merged on the start date at midnight",
+    "user": {
+      "login": "sentinel-author",
+      "id": 1
+    },
+    "body": "SENTINEL-BODY: private description that must never be published.",
+    "labels": [
+      {
+        "id": 1000,
+        "name": "public-changelog",
+        "color": "ededed"
+      }
+    ],
+    "created_at": "2026-11-01T08:00:00Z",
+    "updated_at": "2026-11-20T00:00:01Z",
+    "closed_at": "2026-11-20T00:00:00Z",
+    "merged_at": "2026-11-20T00:00:00Z",
+    "merge_commit_sha": "5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e",
+    "head": {
+      "ref": "sentinel-branch",
+      "sha": "abababababababababababababababababababab"
+    },
+    "base": {
+      "ref": "main"
+    },
+    "draft": false
+  }
+]
