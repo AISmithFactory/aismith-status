@@ -40,8 +40,31 @@ def fixture(name):
         return json.load(fh)
 
 
+def github_link(page, last, base="https://api.github.com/repositories/1000/pulls"):
+    """The Link header GitHub sends with page `page` of `last`: none when one
+    page holds everything; otherwise next and last before the end, prev and
+    first after the start."""
+    if last <= 1:
+        return None
+    q = "state=closed&sort=updated&direction=desc&per_page=100&page="
+    rels = []
+    if page < last:
+        rels += [f'<{base}?{q}{page + 1}>; rel="next"', f'<{base}?{q}{last}>; rel="last"']
+    if page > 1:
+        rels += [f'<{base}?{q}{page - 1}>; rel="prev"', f'<{base}?{q}1>; rel="first"']
+    return ", ".join(rels)
+
+
+class Answer:
+    """One recorded page with an explicit Link header (None: no header)."""
+
+    def __init__(self, data, link):
+        self.data, self.link = data, link
+
+
 class FakeAPI:
-    """Answers GET /repos/<owner>/<name>/pulls?...&page=N from recorded pages."""
+    """Answers GET /repos/<owner>/<name>/pulls?...&page=N from recorded pages,
+    each with the Link header GitHub would send (or an Answer's own)."""
 
     def __init__(self, pages):
         self.pages = pages          # {full_name: [page1, page2, ...]}
@@ -58,7 +81,15 @@ class FakeAPI:
         page = int(q["page"][0])
         if isinstance(pages, Exception):
             raise pages
-        return copy.deepcopy(pages[page - 1]) if page <= len(pages) else []
+        assert page <= len(pages), f"page {page} was never advertised"
+        answer = pages[page - 1]
+        if isinstance(answer, Answer):
+            return copy.deepcopy(answer.data), answer.link
+        return copy.deepcopy(answer), github_link(page, len(pages))
+
+    def pages_read(self, full_name):
+        return [int(urllib.parse.parse_qs(urllib.parse.urlsplit(url).query)["page"][0])
+                for url, _tok in self.calls if f"/repos/{full_name}/pulls" in url]
 
 
 class Workdir:
@@ -354,6 +385,77 @@ class FailsClosed(unittest.TestCase):
         self.assertIsNone(work.snapshot())
 
 
+class Pagination(unittest.TestCase):
+    """A page is the last only when its answer says no next page exists, and
+    pagination that cannot be read fails closed (the code check's finding)."""
+
+    def short_first_page(self):
+        page = fixture("pulls-hub-seed.json")[:1]     # #301, eligible
+        self.assertLess(len(page), cl.PER_PAGE)
+        return page
+
+    def assert_unreadable(self, seed_pages):
+        work = Workdir(self)
+        api = FakeAPI({SEED: seed_pages, PACKS: [[]]})
+        with self.assertRaises(cl.FailClosed) as ctx:
+            run(work, ENV, api)
+        self.assertEqual(str(ctx.exception), "unreadable pagination")
+        self.assertTrue(work.untouched())
+        return api
+
+    def test_short_first_page_that_advertises_a_next_page_is_followed(self):
+        pulls = fixture("pulls-hub-seed.json")
+        work = Workdir(self)
+        api = FakeAPI({SEED: [self.short_first_page(), pulls[1:]], PACKS: [[]]})
+        code, lines = run(work, ENV, api)
+        self.assertEqual(code, 0)
+        self.assertEqual(api.pages_read(SEED), [1, 2])
+        self.assertEqual(idents(work.entries()), [("aismith-hub-seed", 301),
+                                                  ("aismith-hub-seed", 296)])  # #296 is on page 2
+
+    def test_short_first_page_that_advertises_a_next_page_which_fails_writes_nothing(self):
+        work = Workdir(self)
+        api = FakeAPI({SEED: _PagesThenError([self.short_first_page()]), PACKS: [[]]})
+        with self.assertRaises(cl.FailClosed):
+            run(work, ENV, api)
+        self.assertEqual(api.pages_read(SEED), [1, 2])
+        self.assertTrue(work.untouched())
+
+    def test_a_page_whose_answer_says_no_next_page_is_the_last_whatever_its_length(self):
+        old = cl.PER_PAGE
+        cl.PER_PAGE = 2
+        self.addCleanup(setattr, cl, "PER_PAGE", old)
+        work = Workdir(self)
+        api = FakeAPI({SEED: [fixture("pulls-hub-seed.json")[:2]], PACKS: [[]]})   # full, no Link
+        code, _ = run(work, ENV, api)
+        self.assertEqual(code, 0)
+        self.assertEqual(api.pages_read(SEED), [1])
+        self.assertEqual(idents(work.entries()), [("aismith-hub-seed", 301)])
+
+    def test_unreadable_link_header_fails_closed(self):
+        url = "https://api.github.com/repositories/1000/pulls?per_page=100&page=2"
+        for link in ("", " ", "next", f'{url}; rel="next"', f"<{url}>; rel=next",
+                     f'<{url}> rel="next"', f'<{url}>; rel="next",',
+                     f'<{url}>; rel="next" <{url}>; rel="last"'):
+            with self.subTest(link=link):
+                api = self.assert_unreadable([Answer(self.short_first_page(), link)])
+                self.assertEqual(api.pages_read(SEED), [1])
+
+    def test_next_page_other_than_the_following_one_fails_closed(self):
+        base = "https://api.github.com/repositories/1000/pulls?per_page=100"
+        for link in (f'<{base}&page=3>; rel="next"', f'<{base}&page=1>; rel="next"',
+                     f'<{base}&page=two>; rel="next"', f'<{base}>; rel="next"',
+                     f'<{base}&page=2>; rel="next", <{base}&page=3>; rel="next"'):
+            with self.subTest(link=link):
+                api = self.assert_unreadable([Answer(self.short_first_page(), link)])
+                self.assertEqual(api.pages_read(SEED), [1])
+
+    def test_later_page_without_a_link_header_fails_closed(self):
+        pulls = fixture("pulls-hub-seed.json")
+        api = self.assert_unreadable([self.short_first_page(), Answer(pulls[1:], None)])
+        self.assertEqual(api.pages_read(SEED), [1, 2])
+
+
 class _PagesThenError:
     """Serves the given pages, then fails on the next one."""
 
@@ -370,13 +472,17 @@ class _PagesThenError:
 
 
 class _Server(http.server.BaseHTTPRequestHandler):
-    routes = {}
+    routes = {}     # path: (status, headers, body), or a list of those, one per page
     seen_auth = []
+    seen_pages = []
 
     def do_GET(self):
         _Server.seen_auth.append(self.headers.get("Authorization"))
-        status, headers, body = _Server.routes.get(urllib.parse.urlsplit(self.path).path,
-                                                   (404, {}, b"{}"))
+        parts = urllib.parse.urlsplit(self.path)
+        page = int(urllib.parse.parse_qs(parts.query).get("page", ["1"])[0])
+        _Server.seen_pages.append((parts.path, page))
+        route = _Server.routes.get(parts.path, (404, {}, b"{}"))
+        status, headers, body = route[page - 1] if isinstance(route, list) else route
         self.send_response(status)
         for k, v in headers.items():
             self.send_header(k, v)
@@ -414,9 +520,17 @@ class Transport(unittest.TestCase):
     def setUp(self):
         _Server.routes = {f"/repos/{PACKS}/pulls": (200, {}, b"[]")}
         _Server.seen_auth = []
+        _Server.seen_pages = []
 
-    def route_seed(self, status, headers, body):
-        _Server.routes[f"/repos/{SEED}/pulls"] = (status, headers, body)
+    def route_seed(self, status, headers=None, body=None):
+        route = status if isinstance(status, list) else (status, headers, body)
+        _Server.routes[f"/repos/{SEED}/pulls"] = route
+
+    def seed_pages_read(self):
+        return [p for path, p in _Server.seen_pages if path == f"/repos/{SEED}/pulls"]
+
+    def link(self, page, last):
+        return github_link(page, last, base=f"http://127.0.0.1:{self.port}/repositories/1000/pulls")
 
     def run_real(self):
         work = Workdir(self, store_fixture="idem-store.json")
@@ -465,6 +579,37 @@ class Transport(unittest.TestCase):
         self.assertIn("redirect off the API host refused", err)
         self.assertTrue(work.untouched())
         self.assertEqual(len(_Server.seen_auth), 1)    # the token went nowhere else
+
+    def test_short_first_page_advertising_a_next_page_is_fetched_and_counted(self):
+        # The code check's case through the real transport: page 1 holds fewer
+        # than PER_PAGE items and its Link header advertises page 2.
+        pulls = fixture("pulls-hub-seed.json")
+        self.assertLess(1, cl.PER_PAGE)
+        self.route_seed([(200, {"Link": self.link(1, 2)}, json.dumps(pulls[:1]).encode()),
+                         (200, {"Link": self.link(2, 2)}, json.dumps(pulls[1:]).encode())])
+        work = Workdir(self)
+        code, lines = run(work, ENV, cl.http_get_json)
+        self.assertEqual(code, 0)
+        self.assertEqual(self.seed_pages_read(), [1, 2])
+        self.assertEqual(idents(work.entries()), [("aismith-hub-seed", 301),
+                                                  ("aismith-hub-seed", 296)])  # #296 is on page 2
+        self.assertEqual(lines[0], "changelog: aismith-hub-seed: 2 new")
+
+    def test_short_first_page_advertising_a_next_page_that_fails_writes_nothing(self):
+        # Page 1 alone holds an eligible entry (#301): accepting it as the last
+        # page would have written it. Page 2 fails, so nothing is written.
+        pulls = fixture("pulls-hub-seed.json")
+        self.route_seed([(200, {"Link": self.link(1, 2)}, json.dumps(pulls[:1]).encode()),
+                         (500, {}, b'{"message": "Server Error"}')])
+        work = Workdir(self)
+        try:
+            run(work, ENV, cl.http_get_json)
+            err = None
+        except cl.FailClosed as e:
+            err = str(e)
+        self.assertEqual(err, "HTTP 500")
+        self.assertEqual(self.seed_pages_read(), [1, 2])
+        self.assertTrue(work.untouched())
 
     def test_network_error(self):
         old = cl.API

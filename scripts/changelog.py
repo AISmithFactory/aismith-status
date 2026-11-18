@@ -25,6 +25,10 @@ Rules, each one fail closed:
   malformed store writes nothing; updates.json is replaced only, atomically,
   when at least one new entry exists, so a run with nothing new changes no
   byte.
+- EVERY PAGE. A page is the last only when GitHub's answer says no next page
+  exists (its Link header has no rel="next"), whatever the page's length; a
+  page that advertises a next page is followed. Pagination that cannot be
+  read fails closed.
 - QUIET LOGS. This repository and its Actions logs are public, so the log
   carries only the count of entries published, never a title and never a
   count of what was read or skipped.
@@ -54,6 +58,7 @@ KEYS = ("merged_at", "repo", "number", "title")
 _TS = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z")
 _DAY = re.compile(r"\d{4}-\d{2}-\d{2}")
 _FULL_NAME = re.compile(r"[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?/[A-Za-z0-9._-]+")
+_LINK_VALUE = re.compile(r'\s*<([^<>]*)>\s*;\s*rel="([^"]+)"\s*(,|\Z)')
 
 
 class FailClosed(Exception):
@@ -137,6 +142,8 @@ class _SameHostRedirect(urllib.request.HTTPRedirectHandler):
 
 
 def http_get_json(url, token):
+    """GET url; return (decoded JSON, Link header or None). The Link header is
+    GitHub's pagination metadata and is kept for next_page() to read."""
     req = urllib.request.Request(url, headers={
         "Accept": "application/vnd.github+json",
         "Authorization": f"Bearer {token}",
@@ -147,6 +154,7 @@ def http_get_json(url, token):
     try:
         with opener.open(req, timeout=TIMEOUT_S) as resp:
             status, body = resp.status, resp.read()
+            links = resp.headers.get_all("Link") or []
     except urllib.error.HTTPError as e:
         hdrs = e.headers or {}
         limited = e.code in (403, 429) and (
@@ -159,9 +167,42 @@ def http_get_json(url, token):
     if status != 200:
         raise FailClosed(f"HTTP {status}")
     try:
-        return json.loads(body.decode("utf-8"))
+        data = json.loads(body.decode("utf-8"))
     except (UnicodeDecodeError, ValueError):
         raise FailClosed("unparseable answer") from None
+    return data, (", ".join(links) if links else None)
+
+
+def next_page(link, page):
+    """Read GitHub's pagination metadata for the answer to `page`: the number
+    of the next page, or None when the answer says no next page exists.
+    GitHub sends no Link header when one page holds everything, and a Link
+    header (at least rel="prev") on every later page. Anything else is
+    unreadable and fails closed: a malformed header, a later page without one,
+    or a next page other than page + 1."""
+    if link is None:
+        if page == 1:
+            return None
+        raise FailClosed("unreadable pagination")
+    nexts, pos = [], 0
+    while True:
+        m = _LINK_VALUE.match(link, pos)
+        if not m:
+            raise FailClosed("unreadable pagination")
+        if "next" in m.group(2).split():
+            nexts.append(m.group(1))
+        if not m.group(3):
+            break
+        pos = m.end()
+    if not nexts:
+        return None
+    try:
+        query = urllib.parse.parse_qs(urllib.parse.urlsplit(nexts[0]).query)
+    except ValueError:
+        raise FailClosed("unreadable pagination") from None
+    if len(nexts) != 1 or query.get("page") != [str(page + 1)]:
+        raise FailClosed("unreadable pagination")
+    return page + 1
 
 
 def _read_pr(pr):
@@ -185,26 +226,27 @@ def merged_since(get, token, full_name, cutoff):
     """Every pull request of full_name merged at or after cutoff, all pages or
     none. Sorted by update time, newest first: merging updates a pull request,
     so once an item's update time is before the cutoff, nothing after it can
-    have been merged at or after the cutoff."""
+    have been merged at or after the cutoff. Otherwise a page is the last only
+    when its answer says no next page exists (next_page()), never because it
+    holds fewer than PER_PAGE items."""
     found, numbers = [], set()
     for page in range(1, MAX_PAGES + 1):
         query = urllib.parse.urlencode({"state": "closed", "sort": "updated",
                                         "direction": "desc", "per_page": PER_PAGE,
                                         "page": page})
-        data = get(f"{API}/repos/{full_name}/pulls?{query}", token)
+        data, link = get(f"{API}/repos/{full_name}/pulls?{query}", token)
         if not isinstance(data, list):
             raise FailClosed("unparseable answer")
-        done = len(data) < PER_PAGE
+        following = next_page(link, page)
         for pr in data:
             number, title, merged_at, merged, updated, labels = _read_pr(pr)
             if updated < cutoff:
-                done = True
-                break
+                return found
             if merged is None or merged < cutoff or number in numbers:
                 continue
             numbers.add(number)
             found.append((number, title, merged_at, labels))
-        if done:
+        if following is None:
             return found
     raise FailClosed(f"more than {MAX_PAGES} pages")
 
