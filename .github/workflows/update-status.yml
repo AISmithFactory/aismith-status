@@ -35,3 +35,24 @@ jobs:
             git checkout -- status.json 2>/dev/null || true
             echo "no material change"
           fi
+      # Public changelog (updates.json, read by updates.html). DORMANT until the
+      # CHANGELOG_READ_TOKEN secret is set AND CHANGELOG_SINCE holds a date:
+      # without either it reads nothing and writes nothing. Opt-in: only merged
+      # pull requests labelled public-changelog and not no-changelog are listed,
+      # four fields each. It runs after the status commit and cannot fail the
+      # job, so the status probe above behaves exactly as before.
+      - name: Changelog (opt-in, dormant without its token)
+        continue-on-error: true
+        env:
+          CHANGELOG_TOKEN: ${{ secrets.CHANGELOG_READ_TOKEN }}
+          CHANGELOG_REPOS: "AISmithFactory/aismith-hub-seed AISmithFactory/aismith-packs"
+          # The start date, UTC, YYYY-MM-DD: the day CHANGELOG_READ_TOKEN is first set.
+          CHANGELOG_SINCE: ""
+        run: python3 scripts/changelog.py updates.json
+      - name: Commit updates if changed
+        run: |
+          if ! git diff --quiet -- updates.json; then
+            git add updates.json && git commit -m "updates: refresh" && git push
+          else
+            echo "no new updates"
+          fi

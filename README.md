@@ -12,6 +12,13 @@ this page must keep working when Supabase/Netlify/the hub are down.
   (runbook path). Newest first; `status: open|resolved`.
 - Client hubs may PULL `status.json` as a banner feed. Never a push into any
   client DB.
+- `updates.json` / `updates.html` -- the public changelog. The same Action's
+  `Changelog` step (`scripts/changelog.py`) adds merged pull requests of the
+  repositories in `CHANGELOG_REPOS` that carry the label `public-changelog`
+  and not `no-changelog`, merged on or after `CHANGELOG_SINCE`: merge time,
+  repository name, number and title only, newest first, no links. DORMANT
+  until the `CHANGELOG_READ_TOKEN` secret is set and `CHANGELOG_SINCE` holds a
+  date; fails closed on any error. Tests: `python3 -m unittest discover -s tests -v`.
 
 Backup signal reads null until backup events flow into the hub feed
 (`backup_ok` activity events — future monitor half).

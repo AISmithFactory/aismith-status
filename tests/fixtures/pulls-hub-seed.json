@@ -1,0 +1,269 @@
+[
+  {
+    "url": "https://api.github.com/repos/AISmithFactory/aismith-hub-seed/pulls/301",
+    "html_url": "https://github.com/AISmithFactory/aismith-hub-seed/pull/301",
+    "number": 301,
+    "state": "closed",
+    "title": "Add a calendar export for bookings",
+    "user": {
+      "login": "sentinel-author",
+      "id": 1
+    },
+    "body": "SENTINEL-BODY: private description that must never be published.",
+    "labels": [
+      {
+        "id": 1000,
+        "name": "public-changelog",
+        "color": "ededed"
+      },
+      {
+        "id": 1001,
+        "name": "sentinel-label",
+        "color": "ededed"
+      }
+    ],
+    "created_at": "2026-11-01T08:00:00Z",
+    "updated_at": "2026-11-25T10:00:05Z",
+    "closed_at": "2026-11-25T10:00:00Z",
+    "merged_at": "2026-11-25T10:00:00Z",
+    "merge_commit_sha": "5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e",
+    "head": {
+      "ref": "sentinel-branch",
+      "sha": "abababababababababababababababababababab"
+    },
+    "base": {
+      "ref": "main"
+    },
+    "draft": false
+  },
+  {
+    "url": "https://api.github.com/repos/AISmithFactory/aismith-hub-seed/pulls/300",
+    "html_url": "https://github.com/AISmithFactory/aismith-hub-seed/pull/300",
+    "number": 300,
+    "state": "closed",
+    "title": "Unmerged experiment that never shipped",
+    "user": {
+      "login": "sentinel-author",
+      "id": 1
+    },
+    "body": "SENTINEL-BODY: private description that must never be published.",
+    "labels": [
+      {
+        "id": 1000,
+        "name": "public-changelog",
+        "color": "ededed"
+      }
+    ],
+    "created_at": "2026-11-01T08:00:00Z",
+    "updated_at": "2026-11-25T09:00:00Z",
+    "closed_at": "2026-11-25T09:00:00Z",
+    "merged_at": null,
+    "merge_commit_sha": null,
+    "head": {
+      "ref": "sentinel-branch",
+      "sha": "abababababababababababababababababababab"
+    },
+    "base": {
+      "ref": "main"
+    },
+    "draft": false
+  },
+  {
+    "url": "https://api.github.com/repos/AISmithFactory/aismith-hub-seed/pulls/299",
+    "html_url": "https://github.com/AISmithFactory/aismith-hub-seed/pull/299",
+    "number": 299,
+    "state": "closed",
+    "title": "Hold this fix until every hub has it",
+    "user": {
+      "login": "sentinel-author",
+      "id": 1
+    },
+    "body": "SENTINEL-BODY: private description that must never be published.",
+    "labels": [
+      {
+        "id": 1000,
+        "name": "public-changelog",
+        "color": "ededed"
+      },
+      {
+        "id": 1001,
+        "name": "no-changelog",
+        "color": "ededed"
+      }
+    ],
+    "created_at": "2026-11-01T08:00:00Z",
+    "updated_at": "2026-11-24T12:00:01Z",
+    "closed_at": "2026-11-24T12:00:00Z",
+    "merged_at": "2026-11-24T12:00:00Z",
+    "merge_commit_sha": "5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e",
+    "head": {
+      "ref": "sentinel-branch",
+      "sha": "abababababababababababababababababababab"
+    },
+    "base": {
+      "ref": "main"
+    },
+    "draft": false
+  },
+  {
+    "url": "https://api.github.com/repos/AISmithFactory/aismith-hub-seed/pulls/298",
+    "html_url": "https://github.com/AISmithFactory/aismith-hub-seed/pull/298",
+    "number": 298,
+    "state": "closed",
+    "title": "Quiet internal clean-up",
+    "user": {
+      "login": "sentinel-author",
+      "id": 1
+    },
+    "body": "SENTINEL-BODY: private description that must never be published.",
+    "labels": [
+      {
+        "id": 1000,
+        "name": "no-changelog",
+        "color": "ededed"
+      }
+    ],
+    "created_at": "2026-11-01T08:00:00Z",
+    "updated_at": "2026-11-24T11:00:01Z",
+    "closed_at": "2026-11-24T11:00:00Z",
+    "merged_at": "2026-11-24T11:00:00Z",
+    "merge_commit_sha": "5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e",
+    "head": {
+      "ref": "sentinel-branch",
+      "sha": "abababababababababababababababababababab"
+    },
+    "base": {
+      "ref": "main"
+    },
+    "draft": false
+  },
+  {
+    "url": "https://api.github.com/repos/AISmithFactory/aismith-hub-seed/pulls/297",
+    "html_url": "https://github.com/AISmithFactory/aismith-hub-seed/pull/297",
+    "number": 297,
+    "state": "closed",
+    "title": "Unlabelled refactor of the intake form",
+    "user": {
+      "login": "sentinel-author",
+      "id": 1
+    },
+    "body": "SENTINEL-BODY: private description that must never be published.",
+    "labels": [],
+    "created_at": "2026-11-01T08:00:00Z",
+    "updated_at": "2026-11-24T10:00:01Z",
+    "closed_at": "2026-11-24T10:00:00Z",
+    "merged_at": "2026-11-24T10:00:00Z",
+    "merge_commit_sha": "5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e",
+    "head": {
+      "ref": "sentinel-branch",
+      "sha": "abababababababababababababababababababab"
+    },
+    "base": {
+      "ref": "main"
+    },
+    "draft": false
+  },
+  {
+    "url": "https://api.github.com/repos/AISmithFactory/aismith-hub-seed/pulls/296",
+    "html_url": "https://github.com/AISmithFactory/aismith-hub-seed/pull/296",
+    "number": 296,
+    "state": "closed",
+    "title": "Show <script>alert(\"x\")</script> & <b>bold</b> <img src=x onerror=alert(1)> as text",
+    "user": {
+      "login": "sentinel-author",
+      "id": 1
+    },
+    "body": "SENTINEL-BODY: private description that must never be published.",
+    "labels": [
+      {
+        "id": 1000,
+        "name": "public-changelog",
+        "color": "ededed"
+      }
+    ],
+    "created_at": "2026-11-01T08:00:00Z",
+    "updated_at": "2026-11-23T08:00:01Z",
+    "closed_at": "2026-11-23T08:00:00Z",
+    "merged_at": "2026-11-23T08:00:00Z",
+    "merge_commit_sha": "5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e",
+    "head": {
+      "ref": "sentinel-branch",
+      "sha": "abababababababababababababababababababab"
+    },
+    "base": {
+      "ref": "main"
+    },
+    "draft": false
+  },
+  {
+    "url": "https://api.github.com/repos/AISmithFactory/aismith-hub-seed/pulls/295",
+    "html_url": "https://github.com/AISmithFactory/aismith-hub-seed/pull/295",
+    "number": 295,
+    "state": "closed",
+    "title": "Merged the day before the start date",
+    "user": {
+      "login": "sentinel-author",
+      "id": 1
+    },
+    "body": "SENTINEL-BODY: private description that must never be published.",
+    "labels": [
+      {
+        "id": 1000,
+        "name": "public-changelog",
+        "color": "ededed"
+      }
+    ],
+    "created_at": "2026-11-01T08:00:00Z",
+    "updated_at": "2026-11-21T08:00:00Z",
+    "closed_at": "2026-11-19T23:59:59Z",
+    "merged_at": "2026-11-19T23:59:59Z",
+    "merge_commit_sha": "5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e",
+    "head": {
+      "ref": "sentinel-branch",
+      "sha": "abababababababababababababababababababab"
+    },
+    "base": {
+      "ref": "main"
+    },
+    "draft": false
+  },
+  {
+    "url": "https://api.github.com/repos/AISmithFactory/aismith-hub-seed/pulls/294",
+    "html_url": "https://github.com/AISmithFactory/aismith-hub-seed/pull/294",
+    "number": 294,
+    "state": "closed",
+    "title": "Updated before the start date, so reading stops here",
+    "user": {
+      "login": "sentinel-author",
+      "id": 1
+    },
+    "body": "SENTINEL-BODY: private description that must never be published.",
+    "labels": [
+      {
+        "id": 1000,
+        "name": "public-changelog",
+        "color": "ededed"
+      }
+    ],
+    "created_at": "2026-11-01T08:00:00Z",
+    "updated_at": "2026-11-19T07:00:00Z",
+    "closed_at": "2026-11-18T09:00:00Z",
+    "merged_at": "2026-11-18T09:00:00Z",
+    "merge_commit_sha": "5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e",
+    "head": {
+      "ref": "sentinel-branch",
+      "sha": "abababababababababababababababababababab"
+    },
+    "base": {
+      "ref": "main"
+    },
+    "draft": false
+  },
+  {
+    "number": 293,
+    "title": null,
+    "labels": "not-a-list",
+    "updated_at": "2026-11-18T00:00:00Z",
+    "merged_at": null
+  }
+]
